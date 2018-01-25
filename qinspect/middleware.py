@@ -37,7 +37,7 @@ cfg = {
 
     'absolute_limit': None,
     'header_stats': True,
-    'log_queries': False,
+    'log_duplicates': False,
     'log_stats': True,
     'log_tracebacks': False,
     'standard_deviation_limit': None,
@@ -131,7 +131,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
 
         dup_groups = cls.group_queries(details)
 
-        if cfg['log_queries']:
+        if cfg['log_duplicates']:
             for sql, num in duplicates:
                 log.warning('[SQL] repeated query (%dx): %s' % (num, sql))
                 if cfg['log_tracebacks'] and dup_groups[sql]:

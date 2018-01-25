@@ -112,7 +112,7 @@ overriding the necessary values.
         'header_stats': True,
 
         # Log duplicate queries
-        'log_queries': False,
+        'log_duplicates': False,
 
         # Log query stats
         'log_stats': True,

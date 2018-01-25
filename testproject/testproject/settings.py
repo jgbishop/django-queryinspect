@@ -41,7 +41,7 @@ QUERY_INSPECT_CONFIG = {
 
     'absolute_limit': -1,
     'header_stats': True,
-    'log_queries': True,
+    'log_duplicates': True,
     'log_stats': True,
     'log_tracebacks': True,
     'standard_deviation_limit': 1,
