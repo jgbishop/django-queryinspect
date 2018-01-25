@@ -32,15 +32,17 @@ log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
 cfg = dict(
-    enabled=(settings.DEBUG and
-        getattr(settings, 'QUERY_INSPECT_ENABLED', False)),
+    enabled=(
+        settings.DEBUG and getattr(settings, 'QUERY_INSPECT_ENABLED', False)
+    ),
     log_stats=getattr(settings, 'QUERY_INSPECT_LOG_STATS', True),
     header_stats=getattr(settings, 'QUERY_INSPECT_HEADER_STATS', True),
     log_queries=getattr(settings, 'QUERY_INSPECT_LOG_QUERIES', False),
     log_tbs=getattr(settings, 'QUERY_INSPECT_LOG_TRACEBACKS', False),
     roots=getattr(settings, 'QUERY_INSPECT_TRACEBACK_ROOTS', None),
-    stddev_limit=getattr(settings, 'QUERY_INSPECT_STANDARD_DEVIATION_LIMIT',
-        None),
+    stddev_limit=getattr(
+        settings, 'QUERY_INSPECT_STANDARD_DEVIATION_LIMIT', None
+    ),
     absolute_limit=getattr(settings, 'QUERY_INSPECT_ABSOLUTE_LIMIT', None),
 )
 
@@ -91,7 +93,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
         for q in queries:
             if q['sql'] is None:
                 continue
-                
+
             qi = cls.QueryInfo()
             qi.sql = cls.sql_id_pattern.sub('= ?', q['sql'])
             qi.time = float(q['time'])
@@ -115,8 +117,9 @@ class QueryInspectMiddleware(MiddlewareMixin):
 
     @classmethod
     def check_duplicates(cls, details):
-        duplicates = [(qi, num) for qi, num in cls.count_duplicates(details)
-            if num > 1]
+        duplicates = [
+            (qi, num) for qi, num in cls.count_duplicates(details) if num > 1
+        ]
         duplicates.reverse()
         n = 0
         if len(duplicates) > 0:
@@ -128,11 +131,13 @@ class QueryInspectMiddleware(MiddlewareMixin):
             for sql, num in duplicates:
                 log.warning('[SQL] repeated query (%dx): %s' % (num, sql))
                 if cfg['log_tbs'] and dup_groups[sql]:
-                    log.warning('Traceback:\n' +
+                    log.warning(
+                        'Traceback:\n' +
                         ''.join(traceback.format_list(dup_groups[sql][0].tb)))
 
         return n
 
+    @classmethod
     def check_stddev_limit(cls, details):
         total = sum(qi.time for qi in details)
         n = len(details)
@@ -151,7 +156,8 @@ class QueryInspectMiddleware(MiddlewareMixin):
 
         for qi in details:
             if qi.time > query_limit:
-                log.warning('[SQL] query execution of %d ms over limit of '
+                log.warning(
+                    '[SQL] query execution of %d ms over limit of '
                     '%d ms (%d dev above mean): %s' % (
                         qi.time * 1000,
                         query_limit * 1000,
@@ -168,19 +174,21 @@ class QueryInspectMiddleware(MiddlewareMixin):
 
         for qi in details:
             if qi.time > query_limit:
-                log.warning('[SQL] query execution of %d ms over absolute '
+                log.warning(
+                    '[SQL] query execution of %d ms over absolute '
                     'limit of %d ms: %s' % (
                         qi.time * 1000,
                         query_limit * 1000,
                         qi.sql))
 
     @classmethod
-    def output_stats(self, details, num_duplicates, request_time, response):
+    def output_stats(cls, details, num_duplicates, request_time, response):
         sql_time = sum(qi.time for qi in details)
         n = len(details)
 
         if cfg['log_stats']:
-            log.info('[SQL] %d queries (%d duplicates), %d ms SQL time, '
+            log.info(
+                '[SQL] %d queries (%d duplicates), %d ms SQL time, '
                 '%d ms total request time' % (
                     n,
                     num_duplicates,
@@ -208,7 +216,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         if not hasattr(self, "request_start"):
             return response
-            
+
         request_time = time.time() - self.request_start
 
         details = self.get_query_details(
