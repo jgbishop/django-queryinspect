@@ -31,20 +31,23 @@ else:
 log = logging.getLogger(__name__)
 log.addHandler(NullHandler())
 
-cfg = dict(
-    enabled=(
-        settings.DEBUG and getattr(settings, 'QUERY_INSPECT_ENABLED', False)
-    ),
-    log_stats=getattr(settings, 'QUERY_INSPECT_LOG_STATS', True),
-    header_stats=getattr(settings, 'QUERY_INSPECT_HEADER_STATS', True),
-    log_queries=getattr(settings, 'QUERY_INSPECT_LOG_QUERIES', False),
-    log_tbs=getattr(settings, 'QUERY_INSPECT_LOG_TRACEBACKS', False),
-    roots=getattr(settings, 'QUERY_INSPECT_TRACEBACK_ROOTS', None),
-    stddev_limit=getattr(
-        settings, 'QUERY_INSPECT_STANDARD_DEVIATION_LIMIT', None
-    ),
-    absolute_limit=getattr(settings, 'QUERY_INSPECT_ABSOLUTE_LIMIT', None),
-)
+# Set up the default configuration
+cfg = {
+    'enabled': False,
+
+    'absolute_limit': None,
+    'header_stats': True,
+    'log_queries': False,
+    'log_stats': True,
+    'log_tracebacks': False,
+    'standard_deviation_limit': None,
+    'traceback_roots': [],
+}
+
+# Pull in the user's configuration and update accordingly
+user_cfg = getattr(settings, "QUERY_INSPECT_CONFIG", {})
+cfg.update(user_cfg)
+cfg['enabled'] = bool(settings.DEBUG and cfg['enabled'])
 
 __all__ = ['QueryInspectMiddleware']
 
@@ -64,10 +67,12 @@ class QueryInspectMiddleware(MiddlewareMixin):
         def should_include(path):
             if path == __file__ or path + 'c' == __file__:
                 return False
-            if not cfg['roots']:
+
+            roots = cfg.get("traceback_roots")
+            if not roots:
                 return True
             else:
-                for root in cfg['roots']:
+                for root in roots:
                     if path.startswith(root):
                         return True
                 return False
@@ -129,7 +134,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
         if cfg['log_queries']:
             for sql, num in duplicates:
                 log.warning('[SQL] repeated query (%dx): %s' % (num, sql))
-                if cfg['log_tbs'] and dup_groups[sql]:
+                if cfg['log_tracebacks'] and dup_groups[sql]:
                     log.warning(
                         'Traceback:\n' +
                         ''.join(traceback.format_list(dup_groups[sql][0].tb)))
@@ -229,5 +234,5 @@ class QueryInspectMiddleware(MiddlewareMixin):
         return response
 
 
-if cfg['enabled'] and cfg['log_tbs']:
+if cfg['enabled'] and cfg['log_tracebacks']:
     QueryInspectMiddleware.patch_cursor()

@@ -36,14 +36,17 @@ USE_L10N = True
 USE_TZ = True
 STATIC_URL = '/static/'
 
-QUERY_INSPECT_ENABLED = True
-QUERY_INSPECT_LOG_STATS = True
-QUERY_INSPECT_HEADER_STATS = True
-QUERY_INSPECT_LOG_QUERIES = True
-QUERY_INSPECT_LOG_TRACEBACKS = True
-QUERY_INSPECT_TRACEBACK_ROOTS = [BASE_DIR]
-QUERY_INSPECT_STANDARD_DEVIATION_LIMIT = 1
-QUERY_INSPECT_ABSOLUTE_LIMIT = -1
+QUERY_INSPECT_CONFIG = {
+    'enabled': True,
+
+    'absolute_limit': -1,
+    'header_stats': True,
+    'log_queries': True,
+    'log_stats': True,
+    'log_tracebacks': True,
+    'standard_deviation_limit': 1,
+    'traceback_roots': [BASE_DIR],
+}
 
 LOGGING = {
     'version': 1,
