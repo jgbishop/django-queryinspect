@@ -120,7 +120,6 @@ class QueryInspectMiddleware(MiddlewareMixin):
         duplicates = [
             (qi, num) for qi, num in cls.count_duplicates(details) if num > 1
         ]
-        duplicates.reverse()
         n = 0
         if len(duplicates) > 0:
             n = (sum(num for qi, num in duplicates) - len(duplicates))
