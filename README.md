@@ -46,7 +46,7 @@ help with identifying why the query has been executed:
     File "/vagrant/customer/serializers.py", line 258, in <lambda>
         lambda obj: [r.name for r in obj.roles.all()]),
 
-## Quickstart
+## Quick Start
 
 Install from the Python Package Index:
 
@@ -88,46 +88,56 @@ shows up:
         ...
     }
 
-By default, Query Inspector will log stats for each request via Django
+By default, Query Inspector will log stats for each request via the Django
 logging mechanism and via HTTP headers in the response. This default
-behaviour can be modified by specifying several settigns values in your
+behavior can be modified by specifying several settings values in your
 Django settings file (see next section)
 
 ## Configuration
 
-The behaviour of Query Inspector can be fine-tuned via the following
-settings variables:
+Query Inspector can be configured a number of ways through a configuration
+dictionary. Simply set up a corresponding dict in your **settings.py** file,
+overriding the necessary values.
 
-    # Whether the Query Inspector should do anything (default: False)
-    QUERY_INSPECT_ENABLED = True
-    # Whether to log the stats via Django logging (default: True)
-    QUERY_INSPECT_LOG_STATS = True
-    # Whether to add stats headers (default: True)
-    QUERY_INSPECT_HEADER_STATS = True
-    # Whether to log duplicate queries (default: False)
-    QUERY_INSPECT_LOG_QUERIES = True
-    # Whether to log queries that are above an absolute limit (default: None - disabled)
-    QUERY_INSPECT_ABSOLUTE_LIMIT = 100 # in milliseconds
-    # Whether to log queries that are more than X standard deviations above the mean query time (default: None - disabled)
-    QUERY_INSPECT_STANDARD_DEVIATION_LIMIT = 2
-    # Whether to include tracebacks in the logs (default: False)
-    QUERY_INSPECT_LOG_TRACEBACKS = True
-    # Project root (a list of directories, see below - default empty)
-    QUERY_INSPECT_TRACEBACK_ROOTS = ['/path/to/my/django/project/']
+    # NOTE: All values shown are the default values
+    QUERY_INSPECT_CONFIG = {
+        # Whether Query Inspector should do anything
+        'enabled': False,
+
+        # Absolute limit (in milliseconds) above which queries should be logged.
+        # A value of None disables this feature.
+        'absolute_limit': None,
+
+        # Add stats to response headers
+        'header_stats': True,
+
+        # Log duplicate queries
+        'log_queries': False,
+
+        # Log query stats
+        'log_stats': True,
+
+        # Include tracebacks in log output
+        'log_tracebacks': False,
+
+        # Number of standard deviations above the mean query time for which
+        # queries should be logged. A value of None disables this feature.
+        'standard_deviation_limit': None,
+
+        # List of directories to filter against when printing tracebacks. See
+        # documentation below for more.
+        'traceback_roots': [],
+    }
 
 ## Traceback roots
 
 Complete tracebacks of an entire request are usually huge, but only a few
 entries in the traceback are of the interest (usually only the few that
-represent the code you're working on). To include only these entries of
-interest in the traceback, you can set `QUERY_INSPECT_TRACEBACK_ROOTS` to a
-list of paths.  If the path for a code file in the traceback begins with any of
-the paths in `QUERY_INSPECT_TRACEBACK_ROOTS`, it will be included in the
-traceback.
-
-Since Django apps need not be under the same directory, the setting also
-accepts colon-separated list of directories - traceback entry referencing any
-file under any of these directories will be included.
+represent the code you're working on). To include only those entries of
+interest in the traceback, you can set `traceback_roots` in the
+`QUERY_INSPECT_CONFIG` dictionary to a list of paths.  If the path for a code
+file in the traceback begins with any of the paths in this list, it will be
+included in the traceback.
 
 ## Testing
 
@@ -144,7 +154,7 @@ For available test environments refer to `tox.ini` file.
 
 ## License
 
-Copyright (C) 2014.-2017. Good Code and Django Query Inspector contributors
+Copyright (C) 2014-2018. Good Code and Django Query Inspector contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
