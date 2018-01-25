@@ -86,7 +86,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
         CursorDebugWrapper.executemany = tb_wrap(real_exec_many)
 
     @classmethod
-    def get_query_infos(cls, queries):
+    def get_query_details(cls, queries):
         retval = []
         for q in queries:
             if q['sql'] is None:
@@ -100,29 +100,29 @@ class QueryInspectMiddleware(MiddlewareMixin):
         return retval
 
     @staticmethod
-    def count_duplicates(infos):
+    def count_duplicates(details):
         buf = collections.defaultdict(lambda: 0)
-        for qi in infos:
+        for qi in details:
             buf[qi.sql] = buf[qi.sql] + 1
         return sorted(buf.items(), key=lambda el: el[1], reverse=True)
 
     @staticmethod
-    def group_queries(infos):
+    def group_queries(details):
         buf = collections.defaultdict(lambda: [])
-        for qi in infos:
+        for qi in details:
             buf[qi.sql].append(qi)
         return buf
 
     @classmethod
-    def check_duplicates(cls, infos):
-        duplicates = [(qi, num) for qi, num in cls.count_duplicates(infos)
+    def check_duplicates(cls, details):
+        duplicates = [(qi, num) for qi, num in cls.count_duplicates(details)
             if num > 1]
         duplicates.reverse()
         n = 0
         if len(duplicates) > 0:
             n = (sum(num for qi, num in duplicates) - len(duplicates))
 
-        dup_groups = cls.group_queries(infos)
+        dup_groups = cls.group_queries(details)
 
         if cfg['log_queries']:
             for sql, num in duplicates:
@@ -133,15 +133,15 @@ class QueryInspectMiddleware(MiddlewareMixin):
 
         return n
 
-    def check_stddev_limit(cls, infos):
-        total = sum(qi.time for qi in infos)
-        n = len(infos)
+    def check_stddev_limit(cls, details):
+        total = sum(qi.time for qi in details)
+        n = len(details)
 
         if cfg['stddev_limit'] is None or n == 0:
             return
 
         mean = total / n
-        stddev_sum = sum(math.sqrt((qi.time - mean) ** 2) for qi in infos)
+        stddev_sum = sum(math.sqrt((qi.time - mean) ** 2) for qi in details)
         if n < 2:
             stddev = 0
         else:
@@ -149,7 +149,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
 
         query_limit = mean + (stddev * cfg['stddev_limit'])
 
-        for qi in infos:
+        for qi in details:
             if qi.time > query_limit:
                 log.warning('[SQL] query execution of %d ms over limit of '
                     '%d ms (%d dev above mean): %s' % (
@@ -159,14 +159,14 @@ class QueryInspectMiddleware(MiddlewareMixin):
                         qi.sql))
 
     @classmethod
-    def check_absolute_limit(cls, infos):
-        n = len(infos)
+    def check_absolute_limit(cls, details):
+        n = len(details)
         if cfg['absolute_limit'] is None or n == 0:
             return
 
         query_limit = cfg['absolute_limit'] / 1000.0
 
-        for qi in infos:
+        for qi in details:
             if qi.time > query_limit:
                 log.warning('[SQL] query execution of %d ms over absolute '
                     'limit of %d ms: %s' % (
@@ -175,9 +175,9 @@ class QueryInspectMiddleware(MiddlewareMixin):
                         qi.sql))
 
     @classmethod
-    def output_stats(self, infos, num_duplicates, request_time, response):
-        sql_time = sum(qi.time for qi in infos)
-        n = len(infos)
+    def output_stats(self, details, num_duplicates, request_time, response):
+        sql_time = sum(qi.time for qi in details)
+        n = len(details)
 
         if cfg['log_stats']:
             log.info('[SQL] %d queries (%d duplicates), %d ms SQL time, '
@@ -211,13 +211,13 @@ class QueryInspectMiddleware(MiddlewareMixin):
             
         request_time = time.time() - self.request_start
 
-        infos = self.get_query_infos(
+        details = self.get_query_details(
             connection.queries[self.conn_queries_len:])
 
-        num_duplicates = self.check_duplicates(infos)
-        self.check_stddev_limit(infos)
-        self.check_absolute_limit(infos)
-        self.output_stats(infos, num_duplicates, request_time, response)
+        num_duplicates = self.check_duplicates(details)
+        self.check_stddev_limit(details)
+        self.check_absolute_limit(details)
+        self.output_stats(details, num_duplicates, request_time, response)
 
         return response
 
