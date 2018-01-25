@@ -40,6 +40,7 @@ cfg = {
     'log_duplicates': False,
     'log_stats': True,
     'log_tracebacks': False,
+    'log_tracebacks_duplicate_limit': 1,
     'standard_deviation_limit': None,
     'traceback_roots': [],
 }
@@ -129,15 +130,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
         if len(duplicates) > 0:
             n = (sum(num for qi, num in duplicates) - len(duplicates))
 
-        dup_groups = cls.group_queries(details)
-
-        if cfg['log_duplicates']:
-            for sql, num in duplicates:
-                log.warning('[SQL] repeated query (%dx): %s' % (num, sql))
-                if cfg['log_tracebacks'] and dup_groups[sql]:
-                    log.warning(
-                        'Traceback:\n' +
-                        ''.join(traceback.format_list(dup_groups[sql][0].tb)))
+        cls.log_duplicates(details, duplicates)
 
         return n
 
@@ -146,7 +139,8 @@ class QueryInspectMiddleware(MiddlewareMixin):
         total = sum(qi.time for qi in details)
         n = len(details)
 
-        if cfg['stddev_limit'] is None or n == 0:
+        the_limit = cfg.get('standard_deviation_limit', None)
+        if the_limit is None or n == 0:
             return
 
         mean = total / n
@@ -156,7 +150,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
         else:
             stddev = math.sqrt((1.0 / (n - 1)) * (stddev_sum / n))
 
-        query_limit = mean + (stddev * cfg['stddev_limit'])
+        query_limit = mean + (stddev * the_limit)
 
         for qi in details:
             if qi.time > query_limit:
@@ -165,7 +159,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
                     '%d ms (%d dev above mean): %s' % (
                         qi.time * 1000,
                         query_limit * 1000,
-                        cfg['stddev_limit'],
+                        the_limit,
                         qi.sql))
 
     @classmethod
@@ -184,6 +178,23 @@ class QueryInspectMiddleware(MiddlewareMixin):
                         qi.time * 1000,
                         query_limit * 1000,
                         qi.sql))
+
+    @classmethod
+    def log_duplicates(cls, details, duplicates):
+        if not cfg['log_duplicates']:
+            return
+
+        dup_groups = cls.group_queries(details)
+
+        for sql, num in duplicates:
+            log.warning('[SQL] repeated query (%dx): %s' % (num, sql))
+            if cfg['log_tracebacks'] and dup_groups[sql]:
+                limit = cfg['log_tracebacks_duplicate_limit']
+
+                for idx, x in enumerate(dup_groups[sql][:limit]):
+                    tb_list = traceback.format_list(x.tb)
+                    log.warning('[{}] Traceback:\n'.format(idx + 1) +
+                                ''.join(tb_list))
 
     @classmethod
     def output_stats(cls, details, num_duplicates, request_time, response):

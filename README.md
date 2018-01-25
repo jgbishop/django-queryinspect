@@ -120,6 +120,11 @@ overriding the necessary values.
         # Include tracebacks in log output
         'log_tracebacks': False,
 
+        # Specifies the number of duplicate queries for which traceback output
+        # should be printed. Increasing this value can be useful for tracking
+        # down where duplicate query calls are occurring in your code.
+        'log_tracebacks_duplicate_limit': 1,
+
         # Number of standard deviations above the mean query time for which
         # queries should be logged. A value of None disables this feature.
         'standard_deviation_limit': None,
