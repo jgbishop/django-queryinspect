@@ -37,6 +37,7 @@ cfg = {
 
     'absolute_limit': None,
     'header_stats': True,
+    'log_all_queries': False,
     'log_duplicates': False,
     'log_stats': True,
     'log_tracebacks': False,
@@ -202,6 +203,17 @@ class QueryInspectMiddleware(MiddlewareMixin):
                                 ''.join(tb_list))
 
     @classmethod
+    def output_sql(cls, details):
+        if not cfg['log_all_queries']:
+            return
+
+        for idx, entry in enumerate(details):
+            log.info('[SQL] [%d: %d ms] %s', idx + 1, entry.time * 1000, entry.sql)
+            tb_list = traceback.format_list(entry.tb)
+            latest = tb_list[-1] if tb_list else ""
+            log.info('[SQL] [%d: Traceback] %s', idx + 1, latest)
+
+    @classmethod
     def output_stats(cls, details, num_duplicates, request_time, response):
         sql_time = sum(qi.time for qi in details)
         n = len(details)
@@ -246,6 +258,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
         self.check_stddev_limit(details)
         self.check_absolute_limit(details)
         self.output_stats(details, num_duplicates, request_time, response)
+        self.output_sql(details)
 
         return response
 

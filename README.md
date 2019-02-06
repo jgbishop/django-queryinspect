@@ -111,10 +111,13 @@ overriding the necessary values.
         # Add stats to response headers
         'header_stats': True,
 
-        # Log duplicate queries
+        # Log all query SQL commands
+        'log_all_queries': False,
+
+        # Log stats on duplicate queries
         'log_duplicates': False,
 
-        # Log query stats
+        # Log general query stats
         'log_stats': True,
 
         # Include tracebacks in log output
