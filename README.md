@@ -132,6 +132,10 @@ overriding the necessary values.
         # List of directories to filter against when printing tracebacks. See
         # documentation below for more.
         'traceback_roots': [],
+
+        # List of directories to exclude when printing tracebacks. See
+        # documentation below for more.
+        'traceback_roots_exclude': [],
     }
 
 ## Traceback roots
@@ -143,6 +147,25 @@ interest in the traceback, you can set `traceback_roots` in the
 `QUERY_INSPECT_CONFIG` dictionary to a list of paths.  If the path for a code
 file in the traceback begins with any of the paths in this list, it will be
 included in the traceback.
+
+The `traceback_roots_exclude` option is also available, allowing you to filter
+out sub-folders from entries that appear in the `traceback_roots` option. This
+is particularly helpful in cases where a virtual environment may exist within
+the working directory.
+
+Here's an example of how both can be used together:
+
+    import os
+
+    BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+
+    # Example of traceback_root filtering
+    QUERY_INSPECT_CONFIG = {
+        # ...
+        'traceback_roots': [BASE_DIR],
+        'traceback_roots_exclude': [os.path.join(BASE_DIR, 'venv')],
+        # ...
+    }
 
 ## Testing
 

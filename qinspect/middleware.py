@@ -43,6 +43,7 @@ cfg = {
     'log_tracebacks_duplicate_limit': 1,
     'standard_deviation_limit': None,
     'traceback_roots': [],
+    'traceback_roots_exclude': [],
 }
 
 # Pull in the user's configuration and update accordingly
@@ -70,11 +71,15 @@ class QueryInspectMiddleware(MiddlewareMixin):
                 return False
 
             roots = cfg.get("traceback_roots")
+            excludes = cfg.get("traceback_roots_exclude", [])
             if not roots:
                 return True
             else:
                 for root in roots:
                     if path.startswith(root):
+                        for x in excludes:
+                            if path.startswith(x):
+                                return False
                         return True
                 return False
 
