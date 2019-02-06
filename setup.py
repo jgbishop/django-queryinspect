@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-from setuptools import setup, find_packages, Command
 import os
 import sys
+from setuptools import setup, find_packages, Command
 
 
 class BaseCommand(Command):
@@ -26,13 +26,13 @@ class TestCommand(BaseCommand):
             sys.exit(-1)
 
 setup(
-    name='django-queryinspect',
+    name='django-quip',
     version='1.0.0',
-    author='Senko Rasic',
-    author_email='senko.rasic@goodcode.io',
-    description='Django Query Inspector',
+    description='Django Query Inspector Plus - SQL query inspector for Django',
+    author='Senko Rasic, Jonah Bishop',
+    author_email='jb@borngeek.com',
+    url='https://github.com/jgbishop/django-quip',
     license='MIT',
-    url='https://github.com/dobarkod/django-queryinspect',
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Environment :: Web Environment",
@@ -44,7 +44,7 @@ setup(
         "Topic :: Software Development :: Libraries :: Python Modules",
     ],
     packages=find_packages(),
-    install_requires=['Django>=1.4'],
+    install_requires=['Django>=1.11'],
     cmdclass={
         'test': TestCommand,
     }
