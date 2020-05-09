@@ -3,6 +3,7 @@ import logging
 import math
 import re
 import time
+import threading
 import traceback
 from functools import wraps
 
@@ -54,6 +55,7 @@ cfg.update(user_cfg)
 cfg['enabled'] = bool(settings.DEBUG and cfg['enabled'])
 
 __all__ = ['QueryInspectMiddleware']
+_local = threading.local()
 
 
 class QueryInspectMiddleware(MiddlewareMixin):
@@ -243,23 +245,26 @@ class QueryInspectMiddleware(MiddlewareMixin):
         super(QueryInspectMiddleware, self).__init__(get_response)
 
     def process_request(self, request):
-        self.request_start = time.time()
-        self.conn_queries_len = len(connection.queries)
+        _local.request_start = time.time()
+        _local.conn_queries_len = len(connection.queries)
 
     def process_response(self, request, response):
-        if not hasattr(self, "request_start"):
+        if not hasattr(_local, "request_start"):
             return response
 
-        request_time = time.time() - self.request_start
+        request_time = time.time() - _local.request_start
 
         details = self.get_query_details(
-            connection.queries[self.conn_queries_len:])
+            connection.queries[_local.conn_queries_len:])
 
         num_duplicates = self.check_duplicates(details)
         self.check_stddev_limit(details)
         self.check_absolute_limit(details)
         self.output_stats(details, num_duplicates, request_time, response)
         self.output_sql(details)
+
+        del _local.conn_queries_len
+        del _local.request_start
 
         return response
 
