@@ -5,6 +5,9 @@ inspecting and reporting SQL queries executed for each web request. Duplicate
 queries can easily be identified using this tool, with full support for
 asynchronous requests (e.g. AJAX).
 
+A decorator is also available for inspecting queries in standalone scripts
+(management commands, for example).
+
 Works with Django (2.2 and later) and Python (3.6 and later).
 
 Example log output:
@@ -48,10 +51,13 @@ help with identifying why the query has been executed:
 
 ## Quick Start
 
+### Install
+
 Install from the Python Package Index:
 
-    pip install django-queryinspect
+    pip install django-quip
 
+### Configure Django
 Add the middleware to your Django settings:
 
     MIDDLEWARE += (
@@ -93,7 +99,7 @@ logging mechanism and via HTTP headers in the response. This default
 behavior can be modified by specifying several settings values in your
 Django settings file (see next section)
 
-## Configuration
+### Configure Django-QuIP
 
 Query Inspector can be configured a number of ways through a configuration
 dictionary. Simply set up a corresponding dict in your **settings.py** file,
@@ -141,10 +147,10 @@ overriding the necessary values.
         'traceback_roots_exclude': [],
     }
 
-## Traceback roots
+#### Traceback roots
 
 Complete tracebacks of an entire request are usually huge, but only a few
-entries in the traceback are of the interest (usually only the few that
+entries in the traceback are of any interest (usually only the few that
 represent the code you're working on). To include only those entries of
 interest in the traceback, you can set `traceback_roots` in the
 `QUERY_INSPECT_CONFIG` dictionary to a list of paths.  If the path for a code
@@ -170,6 +176,20 @@ Here's an example of how both can be used together:
         # ...
     }
 
+## Decorator
+
+A decorator function is available to inspect queries in standalone scripts
+(useful for management commands, for example). Here is an example of how to use
+the decorator in a management command:
+
+    from django.core.management.base import BaseCommand
+    from qinspect.middleware import inspect_queries
+
+    class Command(BaseCommand):
+        @inspect_queries
+        def handle(self, *args, **options):
+            # Your code here
+
 ## Testing
 
 To run tests just use `tox` command (https://pypi.python.org/pypi/tox)
@@ -178,14 +198,14 @@ To run tests just use `tox` command (https://pypi.python.org/pypi/tox)
 
 If you need you can run tox just for single environment, for instance:
 
-    tox -e py36-django111
+    tox -e py36-django30
 
 For available test environments refer to `tox.ini` file.
 
 
 ## License
 
-Copyright (C) 2014-2019. Good Code and Django Query Inspector contributors
+Copyright (C) 2014-2020. Good Code and Django Query Inspector contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
