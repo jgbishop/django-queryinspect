@@ -1,9 +1,10 @@
-import logging
 import collections
+import logging
+import math
 import re
 import time
 import traceback
-import math
+from functools import wraps
 
 from django.conf import settings
 from django.db import connection
@@ -214,7 +215,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
             log.info('[SQL] [%d: Traceback] %s', idx + 1, latest)
 
     @classmethod
-    def output_stats(cls, details, num_duplicates, request_time, response):
+    def output_stats(cls, details, num_duplicates, request_time, response=None):
         sql_time = sum(qi.time for qi in details)
         n = len(details)
 
@@ -227,7 +228,7 @@ class QueryInspectMiddleware(MiddlewareMixin):
                     sql_time * 1000,
                     request_time * 1000))
 
-        if cfg['header_stats']:
+        if cfg['header_stats'] and response:
             response['X-QueryInspect-Num-SQL-Queries'] = str(n)
             response['X-QueryInspect-Total-SQL-Time'] = '%d ms' % (
                 sql_time * 1000)
@@ -261,6 +262,34 @@ class QueryInspectMiddleware(MiddlewareMixin):
         self.output_sql(details)
 
         return response
+
+
+def inspect_queries(thefunc):
+    @wraps(thefunc)
+    def _wrapped(*args, **kwargs):
+        qim = QueryInspectMiddleware
+
+        doit = cfg.get('enabled') and cfg.get('log_tracebacks')
+        if doit:
+            qim.patch_cursor()
+            start = time.time()
+            conn_queries_len = len(connection.queries)
+
+        result = thefunc(*args, **kwargs)
+
+        if doit:
+            delta = time.time() - start
+            details = qim.get_query_details(connection.queries[conn_queries_len:])
+            num_duplicates = qim.check_duplicates(details)
+
+            qim.check_stddev_limit(details)
+            qim.check_absolute_limit(details)
+            qim.output_stats(details, num_duplicates, delta)
+            qim.output_sql(details)
+
+        return result
+
+    return _wrapped
 
 
 if cfg['enabled'] and cfg['log_tracebacks']:
