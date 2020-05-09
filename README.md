@@ -1,25 +1,25 @@
-# Django Query Inspector
+# Django Query Inspector Plus (QuIP)
 
-[![Build Status](https://travis-ci.org/dobarkod/django-queryinspect.svg?branch=master)](https://travis-ci.org/dobarkod/django-queryinspect?branch=master)
+Query Inspector Plus (QuIP) is a Django application providing middleware for
+inspecting and reporting SQL queries executed for each web request. Duplicate
+queries can easily be identified using this tool, with full support for
+asynchronous requests (e.g. AJAX).
 
-Query Inspector is a Django application providing middleware for inspecting
-and reporting SQL queries executed for each web request.
-
-Works with Django (1.4 and later) and Python (2.6, 2.7, 3.3 and later).
+Works with Django (1.11 and later) and Python (2.7, 3.4 and later).
 
 Example log output:
 
     [SQL] 17 queries (4 duplicates), 34 ms SQL time, 243 ms total request time
 
-The statistics can also be added to response headers, for easier debugging
-without looking into the server logs:
+Statistics can also be added to the response headers, for easier debugging
+without having to manually look through server logs:
 
     X-QueryInspect-Num-SQL-Queries: 17
     X-QueryInspect-Duplicate-SQL-Queries: 4
     X-QueryInspect-Total-SQL-Time: 34 ms
     X-QueryInspect-Total-Request-Time: 243 ms
 
-The duplicate queries can also be shown in the log:
+Duplicate queries can also be shown in the log:
 
     [SQL] repeated query (6x): SELECT "customer_role"."id",
         "customer_role"."contact_id", "customer_role"."name"
@@ -162,7 +162,7 @@ Here's an example of how both can be used together:
 
     BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
-    # Example of traceback_root filtering
+    # Example of traceback_roots filtering
     QUERY_INSPECT_CONFIG = {
         # ...
         'traceback_roots': [BASE_DIR],
@@ -185,7 +185,7 @@ For available test environments refer to `tox.ini` file.
 
 ## License
 
-Copyright (C) 2014-2018. Good Code and Django Query Inspector contributors
+Copyright (C) 2014-2019. Good Code and Django Query Inspector contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
