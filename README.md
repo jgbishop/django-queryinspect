@@ -5,7 +5,7 @@ inspecting and reporting SQL queries executed for each web request. Duplicate
 queries can easily be identified using this tool, with full support for
 asynchronous requests (e.g. AJAX).
 
-Works with Django (1.11 and later) and Python (2.7, 3.4 and later).
+Works with Django (2.2 and later) and Python (3.6 and later).
 
 Example log output:
 
