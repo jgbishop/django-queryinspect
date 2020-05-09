@@ -1,8 +1,8 @@
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-
 import sys
+
+
+BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 sys.path.insert(0, os.path.dirname(BASE_DIR))
 
 SECRET_KEY = 'pf87b=3sm!abi6dbt3b8b3hw$yqp4^7#f*87&l2r7tr2qx2_@s'
@@ -15,7 +15,7 @@ INSTALLED_APPS = (
     'testapp',
 )
 
-MIDDLEWARE_CLASSES = (
+MIDDLEWARE = (
     'qinspect.middleware.QueryInspectMiddleware',
 )
 

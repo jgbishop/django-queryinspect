@@ -54,7 +54,7 @@ Install from the Python Package Index:
 
 Add the middleware to your Django settings:
 
-    MIDDLEWARE_CLASSES += (
+    MIDDLEWARE += (
         'qinspect.middleware.QueryInspectMiddleware',
     )
 
