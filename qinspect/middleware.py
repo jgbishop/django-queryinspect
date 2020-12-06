@@ -6,6 +6,7 @@ import time
 import threading
 import traceback
 from functools import wraps
+from pathlib import Path
 
 from django.conf import settings
 from django.db import connection
@@ -71,11 +72,15 @@ class QueryInspectMiddleware(MiddlewareMixin):
         real_exec_many = CursorDebugWrapper.executemany
 
         def should_include(path):
+            if isinstance(path, Path):
+                path = str(path)
+
             if path == __file__ or path + 'c' == __file__:
                 return False
 
-            roots = cfg.get("traceback_roots")
-            excludes = cfg.get("traceback_roots_exclude", [])
+            roots = [str(x) for x in cfg.get("traceback_roots", [])]
+            excludes = [str(x) for x in cfg.get("traceback_roots_exclude", [])]
+
             if not roots:
                 return True
             else:
@@ -201,9 +206,10 @@ class QueryInspectMiddleware(MiddlewareMixin):
                 limit = cfg['log_tracebacks_duplicate_limit']
 
                 for idx, x in enumerate(dup_groups[sql][:limit]):
-                    tb_list = traceback.format_list(x.tb)
-                    log.warning('[{}] Traceback:\n'.format(idx + 1) +
-                                ''.join(tb_list))
+                    if(x.tb):
+                        tb_list = traceback.format_list(x.tb)
+                        log.warning('[{}] Traceback:\n'.format(idx + 1) +
+                                    ''.join(tb_list))
 
     @classmethod
     def output_sql(cls, details):
